@@ -1,0 +1,16 @@
+[target.'cfg(all(target_arch = "arm", target_os = "none"))']
+rustflags = ["--cfg", "usb_log"]
+runner = "elf2uf2-rs --deploy --serial --verbose"
+
+## select this runner to use with probe-rs / cargo embed (debugging probe required)
+#runner = [
+#    "probe-rs",    "run",
+#    "--chip",    "RP2040",
+#    "--log-format",    "{t} {L} {s}",
+#]
+
+[build]
+target = "thumbv6m-none-eabi"
+
+[env]
+DEFMT_LOG = "debug"
