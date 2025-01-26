@@ -16,3 +16,8 @@ To NOT flash the cyw43 firmware use
 ```shell
 cargo run --features skip-cyw43-firmware
 ```
+
+## Bluetooth
+The feature flag `bluetooth` adds support for bluetooth devices.
+However, currently, no version of [`TrouBLE`](https://github.com/embassy-rs/trouble) 
+is currently available on crates.io and thus, the cyw43 driver has to be accessed directly. 

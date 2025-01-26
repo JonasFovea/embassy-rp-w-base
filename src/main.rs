@@ -13,6 +13,7 @@ use embassy_rp::pio::Pio;
 use embassy_time::{Duration, Timer};
 use static_cell::StaticCell;
 
+// for USB serial logging
 use {embassy_rp::peripherals::USB, embassy_rp::usb, embassy_rp::usb::Driver, log};
 
 use {defmt_rtt as _, embassy_time as _, panic_probe as _};
@@ -65,7 +66,12 @@ async fn main(spawner: Spawner) {
         // include the country location matrix
         let clm = include_bytes!("../cyw43-firmware/43439A0_clm.bin");
         // include bluetooth firmware
-        let btfw = include_bytes!("../cyw43-firmware/43439A0_btfw.bin");
+        let btfw: &'static [u8] = { 
+            #[cfg(feature = "bluetooth")]
+            { include_bytes!("../cyw43-firmware/43439A0_btfw.bin") }
+            #[cfg(not(feature = "bluetooth"))]
+            { &[] }
+        };
         (fw, clm, btfw)
     };
 
@@ -86,12 +92,12 @@ async fn main(spawner: Spawner) {
     static STATE: StaticCell<cyw43::State> = StaticCell::new();
     let state = STATE.init(cyw43::State::new());
 
-    // #[cfg(feature = "bluetooth")]
+    #[cfg(feature = "bluetooth")]
     #[allow(unused_variables)]
     let (_net_device, bt_device, mut control, runner) =
         cyw43::new_with_bluetooth(state, pwr, spi, fw, btfw).await;
-    // #[cfg(not(feature = "bluetooth"))]
-    // let (_net_device, mut control, runner) = cyw43::new(state, pwr, spi, fw).await;
+    #[cfg(not(feature = "bluetooth"))]
+    let (_net_device, mut control, runner) = cyw43::new(state, pwr, spi, fw).await;
 
     spawner.spawn(cyw43_task(runner)).unwrap();
     control.init(clm).await;
@@ -113,11 +119,12 @@ async fn main(spawner: Spawner) {
             }
         }
         drop(scanner);
-        log::info!("");
         
 
         control.gpio_set(0, false).await;
         log::info!("led off, scan done");
+        log::info!("");
+        
         Timer::after(delay).await;
     }
 }
