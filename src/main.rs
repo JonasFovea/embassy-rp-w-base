@@ -47,12 +47,7 @@ async fn main(spawner: Spawner) {
     // endregion
 
     // region Wireless Setup
-
-    #[cfg(feature = "skip-cyw43-firmware")]
-    #[allow(unused_variables)]
-    let (fw, clm, btfw) = (&[], &[], &[]);
     
-    #[cfg(not(feature = "skip-cyw43-firmware"))]
     #[allow(unused_variables)]
     let (fw, clm, btfw) = {
         // IMPORTANT
